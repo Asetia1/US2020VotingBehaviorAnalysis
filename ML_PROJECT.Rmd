@@ -1,0 +1,280 @@
+---
+title: "ML Project"
+author: "Aanchal Setia"
+date: "4/14/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data <- read.csv("/Users/aanchalsetia/Downloads/new_anes_final.csv")
+
+#Subsetting
+data <- data[, -c(35,36)]
+
+emotions <- data [ , c(13:21)]
+
+emotions$emotionsmean <- rowMeans(emotions)
+
+data$emotionsmean <- emotions$emotionsmean
+
+trust <- data [ ,c(27:31)]
+trust$trsutmean <- rowMeans(trust)
+
+data$trustmean <- trust$trsutmean
+
+data1 <- read.csv("/Users/aanchalsetia/Downloads/anes_timeseries_2020_csv_20220210.csv")
+
+data2 <- data1[, "V201007a"]
+
+data2 <- as.data.frame(data2)
+data$votedparty_DV <- data2$data2
+
+
+table(data$votedparty_DV)
+
+table(data$cand_gen_DV)
+
+data2 <- data1[, "V201029"]
+table(data2)
+
+
+##Voted party willbe the only DV.
+```
+
+Categorization of Predictor Variables as Continuous or Categorical
+
+Survey language:
+#Categorical: 2 levels (Engish vs Spanish)
+```{r}
+table(data$sur_lang)
+
+
+table(data$gender)
+
+
+
+
+
+data3 <- data1[,"V201005"]
+table(data3)
+data3 <- as.data.frame(data3)
+data$attention_politics <- data3$data3
+
+
+#Descriptives
+mean(data$attention_politics)
+sd(data$attention_politics, na.rm = T)
+
+
+
+table(data$follow_camp)
+
+data4 <- data1[, "V201006"]
+table(data4)
+data4 <- as.data.frame(data4)
+
+data$follow_camp <- data4$data4
+
+table(data$follow_camp)
+
+
+
+table(data$votedparty_DV)
+
+
+#state_reg 
+
+
+data5 <- (data1[,"V201013b"])
+data5 <- as.data.frame(data5)
+data$state_reg <- data5$data5
+table(data$state_reg)
+
+
+##can't use it as a predictor
+
+party_reg
+
+
+table(data$party_id_reg)
+
+data6 <- data1[ ,"V201020"]
+data6 <- as.data.frame(data6)
+data$svoted_primary <- data6$data6
+table(data$voted_primary)
+
+
+table(data$cand_gen_DV)
+
+d <- data1[ "V201030"]
+table(d$V201030)
+table(data$pref_cand)
+
+```
+
+
+#Continuous Variables
+
+```{r}
+emotions <- data [ ,c(12:20)]
+emotions <- as.data.frame(emotions)
+
+
+
+library(psych)
+library(corrplot)
+library("psych")
+library(ggplot2)
+library(car)
+library(nFactors)
+
+ev <- eigen(cor(emotions))
+ap <- parallel(subject=nrow(emotions),var=ncol(emotions),
+  rep=100,cent=.05)
+nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+plotnScree(nS) 
+
+
+fafitfree <- fa(emotions,nfactors = ncol(emotions), rotate = "none")
+n_factors <- length(fafitfree$e.values)
+scree     <- data.frame(
+  Factor_n =  as.factor(1:n_factors), 
+  Eigenvalue = fafitfree$e.values)
+ggplot(scree, aes(x = Factor_n, y = Eigenvalue, group = 1)) + 
+  geom_point() + geom_line() +
+  xlab("Number of factors") +
+  ylab("Initial eigenvalue") +
+  labs( title = "Scree Plot", 
+        subtitle = "(Based on the unreduced correlation matrix)")
+
+
+fa.none <- fa(r=emotions, nfactors = 3,  fm="ml", max.iter=1000, rotate="promax") 
+print(fa.none)
+
+
+factanal.none <- factanal(emotions, factors=3, scores = c("regression"), rotation = "promax")
+print(factanal.none)
+fa.diagram(fa.none)
+
+
+joy_emotions <- data [ ,c("emo_1", "emo_5", "emo_7")]
+joy_emotions <- as.data.frame(joy_emotions)
+joy_emotions <- rowMeans(joy_emotions)
+
+
+outrage_emotions <- data [ ,c("emo_2", "emo_6", "emo_9")]
+outrage_emotions <- as.data.frame(outrage_emotions)
+outrage_emotions <- rowMeans(outrage_emotions)
+
+proud_emotions <- data [ ,c("emo_3", "emo_4", "emo_8")]
+proud_emotions <- as.data.frame(proud_emotions)
+proud_emotions <- rowMeans(proud_emotions)
+
+data$joy_emotions <- joy_emotions
+data$outrage_emotions <- outrage_emotions
+data$proud_emotions <- proud_emotions
+
+mean(data$joy_emotions)
+sd(data$joy_emotions)
+
+mean(data$outrage_emotions)
+sd(data$outrage_emotions)
+
+mean(data$proud_emotions)
+sd(data$proud_emotions)
+
+```
+
+trust_gov
+
+
+#Continuous higher trust higher score
+```{r}
+
+data$trust_1 <- 6-data$trust_1
+data$trust_5 <- 6- data$trust_5
+
+trust <- data [ ,c(27:31)]
+trust$trsutmean <- rowMeans(trust)
+
+data$trustmean <- trust$trsutmean
+mean(data$trustmean)
+
+table(data$trump_job)
+
+d <- data1 [, "V201201"]
+d<- as.data.frame(d)
+table(d)
+data$simp_ideology <- d
+
+table(data$simp_ideology)
+
+
+mean(data$vote_duty)
+
+
+table(data$party_id_self)
+
+mean(data$party_id_import)
+
+
+table(data$covid_party)
+
+table(data$race)
+
+
+data$covid_party <- sapply(data$covid_party, as.numeric )
+data$party_id_import <- sapply(data$party_id_import, as.numeric )
+data$vote_duty <- sapply(data$vote_duty, as.numeric )
+data$trustmean <- sapply(data$trustmean, as.numeric )
+data$joy_emotions <- sapply(data$joy_emotions, as.numeric )
+data$outrage_emotions <- sapply(data$outrage_emotions, as.numeric )
+data$proud_emotions <- sapply(data$proud_emotions, as.numeric )
+data$follow_camp <- sapply(data$follow_camp, as.numeric )
+data$attention_politics <- sapply(data$attention_politics, as.numeric )
+d <- cbind( data$party_id_import, data$vote_duty, 
+           data$trustmean, data$outrage_emotions, data$joy_emotions, 
+           data$proud_emotions, data$follow_camp, data$attention_politics)
+
+summary(d)
+
+colnames(d) <- c("party_id_import", "vote_duty", "trustmean", 
+                 "outrage_emotions", "joy_emotions", "proud_emotions",
+                 "follow_camp", "attention_politics")
+
+d <- as.data.frame(d)
+
+pairs(d)
+
+correlation_matrix(d)
+
+boxplot(data$votedparty_DV)
+
+hist(data$votedparty_DV, ylim = c(3000, 4500), names.arg = c("Democratic", "Republican"), xlab = "Party")
+
+
+fit <- lm(votedparty_DV ~ covid_party + party_id_import + vote_duty +trustmean+ 
+                 outrage_emotions+joy_emotions+proud_emotions+
+                 +follow_camp+attention_politics+ sur_lang + gender+ race+ stocks + svoted_primary + party_id_import +  party_id_self, data = data)
+summary(fit)
+
+data$votedparty_DV <- as.factor(data$votedparty_DV)
+library(stats)
+
+data$votedparty_DV <- as.factor(data$votedparty_DV)
+
+glm.fits <- glm (votedparty_DV ~ covid_party + party_id_import + vote_duty +trustmean+ 
+                 outrage_emotions+joy_emotions+proud_emotions+
+                 +follow_camp+attention_politics+ sur_lang + gender+ race+ stocks + svoted_primary + party_id_import +  party_id_self, data = data, family = binomial
+)
+
+summary(glm.fits)
+plot(glm.fits)
+```
+
+
+ 
